@@ -24,6 +24,7 @@
 - Bei jedem Beispiel die Masse angeben, damit F = m·a berechnet werden kann.
 
 ## Unterrichtsabfolge
+0. **Einstieg Folgen (rein mathematisch, ohne Physik):** `01_folgen` (explizit/rekursiv berechnen und plotten), `02_geometrische_summe` (Summenfolge, Grenzwert 1/(1−q) selbst finden), `03_fibonacci` (Quotienten → goldener Schnitt). Fibonacci-Folge heißt `f`, nicht `F` (Kraft).
 1. **Analyse:** Aus einer Ortsfolge Geschwindigkeit und Beschleunigung als Differenzenfolgen berechnen (Startercode vorgegeben, Schüler erweitern).
 2. **Newton einführen:** F = m·a, z. B. „gleiche Kraft, doppelte Masse, halbe Beschleunigung".
 3. **Kraft in den Beispielen aus 1 bestimmen.** Analysekette s → v → a → F schließen. Beispiele mit verschiedenen Kraftarten wählen (Fall: konstante Kraft; Federschwingung: F gegen s ergibt fallende Gerade → Federgesetz F = −D·s selbst aus Daten finden).
