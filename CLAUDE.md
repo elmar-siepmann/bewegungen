@@ -11,6 +11,8 @@
 - Verwaltung durch den Lehrer in VS Code (Jupyter-Erweiterung, Git: Commit + Push).
 - Die Seite ist öffentlich: nur Arbeitsmaterial, keine Schülerdaten.
 - Änderungen der Schüler werden nur in ihrem Browser gespeichert; Vorlagen bleiben unverändert. Schüler sollen wichtige Notebooks als .ipynb herunterladen.
+- Geänderte Notebooks erreichen Schüler nicht, die das Notebook schon geöffnet oder bearbeitet haben: JupyterLite legt eine Kopie im Browser (IndexedDB) an und gleicht sie nicht mit dem Server ab. Neue Dateien erscheinen dagegen bei allen. Deshalb nach Unterrichtsbeginn Änderungen als neue Datei anlegen (z. B. `03_fibonacci_neu.ipynb`) und die alte löschen. Alternativ löschen Schüler das Notebook im Dateibrowser und laden die Seite neu (vorher als .ipynb herunterladen).
+- Vor dem Commit alle Zellausgaben aus den Notebooks löschen (VS Code: „Alle Ausgaben löschen"). Sonst sehen die Schüler Ausgaben und Diagramme vom Testlauf.
 - Jedes Notebook auch in der fertigen JupyterLite-Seite testen (Pyodide verhält sich anders bei `input()`, Animationen, `time.sleep`, Dateipfaden).
 - CSV einlesen: `np.loadtxt("datei.csv", delimiter=",", skiprows=1)`. Achtung: deutsche CSV-Dateien nutzen oft Semikolon und Dezimalkomma; Export mit Dezimalpunkt verwenden (z. B. in phyphox wählbar).
 
@@ -18,6 +20,8 @@
 - Sprache: Deutsch, Niveau Klasse 9.
 - Variablennamen wie an der Tafel: `s`, `v`, `a`, `F`, `m`, `dt`, `t`, `D`.
 - Startercode kurz halten: Daten, Δt, eine Rechenzeile, ein Plot. Schüler modifizieren vorgegebenen Code, statt von Null zu schreiben.
+- Lücken im Startercode einheitlich mit `??` markieren, dahinter ein Kommentar im Muster `# hier den Quotienten berechnen`. Schleifen und Plot vorgeben, die neue Idee (Länge der Folge, Rechenzeile) bleibt offen. Tipps zum Aufklappen dürfen die Lösung der `??` verraten.
+- JupyterLite zeichnet jede Zelle in ein eigenes Diagramm. Soll ein Plot in einer späteren Zelle ergänzt werden (z. B. waagerechte Linie), den Plot dort vorgeben, nicht auf das Diagramm der früheren Zelle verweisen.
 - Zuerst Schleifen, damit die rekursive Definition der Folge sichtbar ist. `np.diff` (Differenzenfolge) und `np.cumsum` (Summenfolge) erst später als Abkürzung zeigen.
 - Zeitachse passend kürzen zeigen (`t[:-1]`), da jede Differenzenfolge ein Glied kürzer ist.
 - Simulierte Messdaten: kleines Δt, zunächst ohne Rauschen (zweite Differenzen verstärken Rauschen stark). Rauschen ggf. später als Zusatz.
