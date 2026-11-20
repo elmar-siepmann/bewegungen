@@ -14,7 +14,16 @@
 - Geänderte Notebooks erreichen Schüler nicht, die das Notebook schon geöffnet oder bearbeitet haben: JupyterLite legt eine Kopie im Browser (IndexedDB) an und gleicht sie nicht mit dem Server ab. Neue Dateien erscheinen dagegen bei allen. Deshalb nach Unterrichtsbeginn Änderungen als neue Datei anlegen (z. B. `03_fibonacci_neu.ipynb`) und die alte löschen. Alternativ löschen Schüler das Notebook im Dateibrowser und laden die Seite neu (vorher als .ipynb herunterladen).
 - Vor dem Commit alle Zellausgaben aus den Notebooks löschen (VS Code: „Alle Ausgaben löschen"). Sonst sehen die Schüler Ausgaben und Diagramme vom Testlauf.
 - Jedes Notebook auch in der fertigen JupyterLite-Seite testen (Pyodide verhält sich anders bei `input()`, Animationen, `time.sleep`, Dateipfaden).
-- CSV einlesen: `np.loadtxt("datei.csv", delimiter=",", skiprows=1)`. Achtung: deutsche CSV-Dateien nutzen oft Semikolon und Dezimalkomma; Export mit Dezimalpunkt verwenden (z. B. in phyphox wählbar).
+- CSV einlesen immer mit Notlösung (seit 20.11.2026: Auf einem iPad fand der Kernel trotz normalem Safari und mehrfachem Neuladen keine Datei aus `data/`). Den Dateinamen als Variable schreiben, damit Schüler nur eine Zeile ändern müssen:
+  ```python
+  datei = "feder.csv"
+  try:
+      t, s = np.loadtxt("data/" + datei, delimiter=",", skiprows=1, unpack=True)
+  except OSError:   # Notlösung: Datei direkt von der Webseite laden
+      from pyodide.http import open_url
+      t, s = np.loadtxt(open_url("https://elmar-siepmann.github.io/bewegungen/files/data/" + datei), delimiter=",", skiprows=1, unpack=True)
+  ```
+- Format der CSV-Dateien: Komma als Trenner, eine Kopfzeile. Achtung: deutsche CSV-Dateien nutzen oft Semikolon und Dezimalkomma; Export mit Dezimalpunkt verwenden (z. B. in phyphox wählbar).
 
 ## Konventionen für Notebooks
 - Sprache: Deutsch, Niveau Klasse 9.
