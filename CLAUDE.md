@@ -6,6 +6,11 @@
 - Ziel ist kein Python-Kurs, sondern Bewegungen analysieren und simulieren. Python ist Werkzeug.
 - Schüler arbeiten auf iPads im Browser mit JupyterLite (numpy, matplotlib).
 
+## Bezug zur Begabtenförderung
+- Der Kurs ist zugleich Modul „Linie S: Bewegung und Simulation“ der Begabtenförderung Mathematik (Ordner `G:\Meine Ablage\Schule\FK-Mathe\Begabtenförderung`, dort `Material/Module/Bewegung-Simulation` und die dortige CLAUDE.md).
+- Zu jeder Lerneinheit sollen dort zusätzlich Arbeitsblätter (LaTeX) entstehen: Rechnungen von Hand, Begründungen, Sicherung, Lösungen. Lösungen nie in dieses öffentliche Repository.
+- Notebooks in diesem Repository bleiben die einzige Fassung der Notebooks.
+
 ## Technische Umsetzung
 - Eigene JupyterLite-Seite auf GitHub Pages, erstellt aus der Vorlage `jupyterlite/demo`. Notebooks und CSV-Dateien liegen im Ordner `content/` und werden automatisch per GitHub Actions gebaut und veröffentlicht.
 - Verwaltung durch den Lehrer in VS Code (Jupyter-Erweiterung, Git: Commit + Push).
@@ -42,7 +47,7 @@
 2. **Newton einführen:** F = m·a, z. B. „gleiche Kraft, doppelte Masse, halbe Beschleunigung".
 3. **Kraft in den Beispielen aus 1 bestimmen.** Analysekette s → v → a → F schließen. Beispiele mit verschiedenen Kraftarten wählen (Fall: konstante Kraft; Federschwingung: F gegen s ergibt fallende Gerade → Federgesetz F = −D·s selbst aus Daten finden).
 4. **Erste Simulation:** Konstante Kraft, Summenfolgen in umgekehrter Richtung. Ergebnis mit der Analyse vergleichen.
-5. **Federkraft simulieren:** F = −D·s. Hier tritt das Aufschaukeln auf (siehe Numerik) und wird durch Vertauschen zweier Zeilen gelöst.
+5. **Federkraft simulieren:** F = −D·s, gleich mit der stabilen Variante B. Danach m, D und Startauslenkung verändern und die Wirkung beschreiben. Das Aufschaukeln (Variante A) ist nur Zusatz (siehe Numerik).
 6. **Dämpfung und periodische Stöße:** Reibung dazu, dann Resonanz.
 
 ## Numerik: Reihenfolge im Simulationsschritt
@@ -54,7 +59,7 @@
       v = v + a*dt   # zuerst v ...
       s = s + v*dt   # ... dann s mit dem neuen v
   ```
-- Didaktisch: Schüler erst Variante A programmieren lassen, Aufschaukeln beobachten, dann Zeilen vertauschen (Aha-Moment).
+- Didaktisch (Entscheidung vom 23.11.2026): Die Schüler bekommen Variante B vorgegeben und sollen zuerst erleben, dass Simulieren leicht ist. Das Vertauschen der Zeilen (Variante A, Aufschaukeln) ist ein ⭐-Zusatz in `06_simulieren`.
 - Hintergrund für den Lehrer: Variante B ist algebraisch gleichwertig zu Störmer-Verlet. Verlet ist die nach s(n+1) umgestellte zweite Differenzenfolge: s(n+1) = 2·s(n) − s(n−1) + a(n)·Δt². Kann als Querverbindung gezeigt werden, ohne Taylorreihen.
 - Gesamtenergie E = ½·m·v² + ½·D·s² nur als Kontrollwerkzeug für den Lehrer, nicht für Schüler.
 
