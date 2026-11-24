@@ -1,0 +1,14 @@
+{
+  "@jupyterlab/filebrowser-extension:widget": {
+    "toolbar": [
+      {
+        "name": "delete",
+        "command": "filebrowser:delete",
+        "icon": "ui-components:delete",
+        "label": "Löschen",
+        "caption": "Markierte Datei löschen (danach Seite neu laden)",
+        "rank": 50
+      }
+    ]
+  }
+}
