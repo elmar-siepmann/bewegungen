@@ -28,7 +28,7 @@
       from pyodide.http import open_url
       t, s = np.loadtxt(open_url("https://elmar-siepmann.github.io/bewegungen/files/data/" + datei), delimiter=",", skiprows=1, unpack=True)
   ```
-- **Animation** (seit 24.11.2026): `content/animation.py` mit `animiere(t, s, art="feder"|"fall"|"wurf", zeitlupe=1)`. Nimmt Listen oder Arrays. Ein HTML-Canvas mit JavaScript (kein matplotlib, weil Pyodide sonst jedes Bild einzeln rendert): links der Körper, rechts das mitwachsende s-t-Diagramm auf gleicher Höhe, Abspielen in echter Zeit ohne Glätten (jedes Bild = ein Zeitschritt, grobes dt ruckelt sichtbar). Bei „fall“ zeigt s nach unten. Zunächst tippen die Schüler die zwei Zeilen `from animation import animiere` und `animiere(t_folge, s_folge)` selbst in `06_simulieren` ein.
+- **Animation** (seit 24.11.2026): `content/animation.py` mit `animiere(t, s, art="feder"|"fall"|"wurf", zeitlupe=1)`. Nimmt Listen oder Arrays. Ein HTML-Canvas mit JavaScript (kein matplotlib, weil Pyodide sonst jedes Bild einzeln rendert): links der Körper, rechts das mitwachsende s-t-Diagramm auf gleicher Höhe, Abspielen in echter Zeit ohne Glätten (jedes Bild = ein Zeitschritt, grobes dt ruckelt sichtbar). Bei „fall“ zeigt s nach unten. In `06_simulieren_neu` ist sie fest eingebaut (Import mit Notlösung in der ersten Codezelle, nach jeder Simulation eine 🎬-Zelle). Übergangslösung für Schüler mit alter Kopie von 06: `animation_kopieren.ipynb`, später löschen.
 - Format der CSV-Dateien: Komma als Trenner, eine Kopfzeile. Achtung: deutsche CSV-Dateien nutzen oft Semikolon und Dezimalkomma; Export mit Dezimalpunkt verwenden (z. B. in phyphox wählbar).
 
 ## Konventionen für Notebooks
@@ -60,7 +60,7 @@
       v = v + a*dt   # zuerst v ...
       s = s + v*dt   # ... dann s mit dem neuen v
   ```
-- Didaktisch (Entscheidung vom 23.11.2026): Die Schüler bekommen Variante B vorgegeben und sollen zuerst erleben, dass Simulieren leicht ist. Das Vertauschen der Zeilen (Variante A, Aufschaukeln) ist ein ⭐-Zusatz in `06_simulieren`.
+- Didaktisch (Entscheidung vom 23.11.2026): Die Schüler bekommen Variante B vorgegeben und sollen zuerst erleben, dass Simulieren leicht ist. Das Vertauschen der Zeilen (Variante A, Aufschaukeln) ist ein ⭐-Zusatz in `06_simulieren_neu` (am 24.11.2026 umbenannt, damit die Fassung mit Animation alle erreicht).
 - Hintergrund für den Lehrer: Variante B ist algebraisch gleichwertig zu Störmer-Verlet. Verlet ist die nach s(n+1) umgestellte zweite Differenzenfolge: s(n+1) = 2·s(n) − s(n−1) + a(n)·Δt². Kann als Querverbindung gezeigt werden, ohne Taylorreihen.
 - Gesamtenergie E = ½·m·v² + ½·D·s² nur als Kontrollwerkzeug für den Lehrer, nicht für Schüler.
 
