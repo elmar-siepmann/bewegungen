@@ -34,6 +34,7 @@
 
 ## Konventionen für Notebooks
 - Sprache: Deutsch, Niveau Klasse 9.
+- **Versionsdatum** (seit 24.11.2026, Wunsch des Nutzers): In der ersten Zelle jedes Kursnotebooks steht unter der Überschrift `*Stand: TT.MM.JJJJ*`. Bei jeder inhaltlichen Änderung das Datum aktualisieren. So sehen Lehrer und Schüler, welche Fassung jemand im Browser hat. Neue Notebooks dürfen als Beta-Fassung hochgeladen werden; Korrekturen kommen unter demselben Namen (Löschen-Knopf, siehe oben).
 - Variablennamen wie an der Tafel: `s`, `v`, `a`, `F`, `m`, `dt`, `t`, `D`.
 - Startercode kurz halten: Daten, Δt, eine Rechenzeile, ein Plot. Schüler modifizieren vorgegebenen Code, statt von Null zu schreiben.
 - Lücken im Startercode einheitlich mit `??` markieren, dahinter ein Kommentar im Muster `# hier den Quotienten berechnen`. Schleifen und Plot vorgeben, die neue Idee (Länge der Folge, Rechenzeile) bleibt offen. Tipps zum Aufklappen dürfen die Lösung der `??` verraten.
