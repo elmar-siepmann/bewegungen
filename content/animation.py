@@ -1,15 +1,24 @@
-"""Animation einer Bewegung entlang einer Linie (1D).
+"""Animation einer Bewegung: entlang einer Linie (1D) oder in der Ebene (2D).
 
 Benutzung im Notebook:
 
     from animation import animiere
+
+    # Bewegung entlang einer Linie: links der Koerper, rechts das s-t-Diagramm
     animiere(t_folge, s_folge)                 # Feder (Standard)
     animiere(t_folge, s_folge, art="fall")     # s nach unten gemessen
     animiere(t_folge, s_folge, art="wurf")     # s = Hoehe nach oben
 
-Links bewegt sich der Koerper, rechts wird gleichzeitig das
-s-t-Diagramm gezeichnet. Die Animation laeuft in echter Zeit:
-Jedes Bild ist genau ein Zeitschritt dt (wie ein Daumenkino).
+    # Bewegung in der Ebene: einfach x und y angeben
+    animiere(t_folge, x_folge, y_folge)
+    animiere(t_folge, x_folge, y_folge, ziel=(4, 3.05))   # mit Ziel, z. B. Korb
+
+Welche Art gemeint ist, erkennt animiere selbst: Steht an dritter Stelle
+eine Liste, ist es eine Bahn in der Ebene. In der Ebene haben beide Achsen
+denselben Massstab, damit Winkel und Formen stimmen.
+
+Die Animation laeuft in echter Zeit: Jedes Bild ist genau ein Zeitschritt
+dt (wie ein Daumenkino).
 """
 
 import json
@@ -20,32 +29,72 @@ from IPython.display import HTML, display
 _ARTEN = ("feder", "fall", "wurf")
 
 
-def animiere(t, s, art="feder", zeitlupe=1):
-    """Spielt die Bewegung s(t) als Animation ab.
+def _als_liste(werte, name):
+    try:
+        return [float(w) for w in werte]
+    except TypeError:
+        raise TypeError(f"{name} muss eine Liste oder ein Array von Zahlen sein.") from None
 
-    t, s      : Listen oder Arrays gleicher Laenge (Zeit in s, Ort in m)
-    art       : "feder" (Koerper an einer Feder, s nach oben),
+
+def animiere(t, s, y=None, art=None, zeitlupe=1, ziel=None):
+    """Spielt eine Bewegung als Animation ab.
+
+    Entlang einer Linie:  animiere(t, s, art="feder")
+    In der Ebene:         animiere(t, x, y)
+
+    t         : Zeiten in s
+    s         : Ort in m (bei einer Bahn in der Ebene: x in m)
+    y         : nur fuer die Ebene: Hoehe y in m
+    art       : nur entlang einer Linie:
+                "feder" (Koerper an einer Feder, s nach oben, Standard),
                 "fall"  (s wird nach unten gemessen),
                 "wurf"  (s ist die Hoehe ueber dem Boden)
     zeitlupe  : 1 = echte Zeit, 2 = halb so schnell, ...
+    ziel      : nur fuer die Ebene: Punkt (x, y), der markiert wird
     """
-    t = [float(x) for x in t]
-    s = [float(x) for x in s]
+    if isinstance(y, str):              # animiere(t, s, "fall") ist auch erlaubt
+        art, y = y, None
+    eben = y is not None
+    name = "x" if eben else "s"
+
+    t = _als_liste(t, "t")
+    s = _als_liste(s, name)
     if len(t) != len(s):
-        raise ValueError(f"t und s muessen gleich lang sein (t: {len(t)}, s: {len(s)}).")
+        raise ValueError(f"t und {name} muessen gleich lang sein (t: {len(t)}, {name}: {len(s)}).")
     if len(t) < 2:
         raise ValueError("Es braucht mindestens zwei Werte.")
     if any(t[i + 1] <= t[i] for i in range(len(t) - 1)):
-        raise ValueError("Die Zeiten in t muessen wachsen. Sind t und s vertauscht?")
-    if art not in _ARTEN:
-        raise ValueError(f'art muss "feder", "fall" oder "wurf" sein, nicht "{art}".')
+        raise ValueError("Die Zeiten in t muessen wachsen. Steht t an erster Stelle?")
 
-    daten = json.dumps({"t": t, "s": s, "art": art, "zeitlupe": float(zeitlupe)})
+    if not eben:
+        if ziel is not None:
+            raise ValueError("ziel gibt es nur fuer eine Bahn in der Ebene: animiere(t, x, y, ziel=(...)).")
+        art = art or "feder"
+        if art not in _ARTEN:
+            raise ValueError(f'art muss "feder", "fall" oder "wurf" sein, nicht "{art}".')
+        daten = {"t": t, "s": s, "art": art, "zeitlupe": float(zeitlupe)}
+        vorlage = _VORLAGE_1D
+    else:
+        if art is not None:
+            raise ValueError("art gibt es nur fuer eine Bewegung entlang einer Linie. "
+                             "In der Ebene reicht animiere(t, x, y).")
+        y = _als_liste(y, "y")
+        if len(y) != len(t):
+            raise ValueError(f"t, x und y muessen gleich lang sein (t: {len(t)}, x: {len(s)}, y: {len(y)}).")
+        if ziel is not None:
+            ziel = [float(ziel[0]), float(ziel[1])]
+        daten = {"t": t, "x": s, "y": y, "ziel": ziel, "zeitlupe": float(zeitlupe)}
+        vorlage = _VORLAGE_2D
+
     kennung = "anim_" + uuid.uuid4().hex[:8]
-    display(HTML(_VORLAGE.replace("KENNUNG", kennung).replace("DATEN", daten)))
+    html = vorlage.replace("KENNUNG", kennung).replace("DATEN", json.dumps(daten))
+    display(HTML(html))
 
 
-_VORLAGE = r"""
+# ----------------------------------------------------------------------
+# Gemeinsame Teile: Bedienelemente, Anfang des Skripts, Abspielen
+# ----------------------------------------------------------------------
+_RAHMEN = r"""
 <div id="KENNUNG" style="font-family: sans-serif; max-width: 640px;">
   <canvas width="640" height="320" style="width: 100%; border: 1px solid #ccc; background: #fff;"></canvas>
   <div style="margin-top: 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -69,9 +118,50 @@ _VORLAGE = r"""
   const cv = box.querySelector("canvas"), c = cv.getContext("2d");
   const knopf = box.querySelector(".start"), neu = box.querySelector(".neu");
   const lupe = box.querySelector(".lupe"), regler = box.querySelector(".regler");
-  const t = D.t, s = D.s, N = t.length;
+  const t = D.t, N = t.length;
+
+  function zahl(v) { return (Math.round(v * 1000) / 1000).toString().replace(".", ","); }
+  function schoeneSchrittweite(bereich) {
+    const roh = bereich / 5, p = Math.pow(10, Math.floor(Math.log10(roh)));
+    for (const f of [1, 2, 5, 10]) if (f * p >= roh) return f * p;
+  }
+"""
+
+# Erwartet eine Funktion zeichne(n), die das Bild zum Zeitschritt n malt.
+_ABSPIELEN = r"""
+  // Abspielen in echter Zeit: gezeigt wird immer der letzte Zeitschritt,
+  // der schon erreicht ist (kein Glaetten, wie ein Daumenkino).
   regler.max = N - 1;
   for (const o of lupe.options) if (+o.value === D.zeitlupe) o.selected = true;
+  let n = 0, laeuft = false, startUhr = 0, startT = 0;
+  function bild(jetzt) {
+    if (!laeuft) return;
+    const tz = startT + (jetzt - startUhr) / 1000 / (+lupe.value);
+    while (n < N - 1 && t[n + 1] <= tz) n++;
+    zeichne(n);
+    if (n >= N - 1) { stopp(); return; }
+    requestAnimationFrame(bild);
+  }
+  function los() {
+    if (n >= N - 1) n = 0;
+    laeuft = true; startUhr = performance.now(); startT = t[n];
+    knopf.innerHTML = "&#10074;&#10074; Pause"; requestAnimationFrame(bild);
+  }
+  function stopp() { laeuft = false; knopf.innerHTML = "&#9654; Start"; }
+  knopf.onclick = () => laeuft ? stopp() : los();
+  neu.onclick = () => { n = 0; zeichne(0); if (laeuft) { startUhr = performance.now(); startT = t[0]; } };
+  lupe.onchange = () => { if (laeuft) { startUhr = performance.now(); startT = t[n]; } };
+  regler.oninput = () => { stopp(); n = +regler.value; zeichne(n); };
+  zeichne(0);
+})();
+</script>
+"""
+
+# ----------------------------------------------------------------------
+# Entlang einer Linie: links der Koerper, rechts das s-t-Diagramm
+# ----------------------------------------------------------------------
+_VORLAGE_1D = _RAHMEN + r"""
+  const s = D.s;
 
   // Wertebereich von s
   let smin = Math.min(...s), smax = Math.max(...s);
@@ -88,8 +178,6 @@ _VORLAGE = r"""
   const GX0 = 250, GX1 = 620, t0 = t[0], t1 = t[N - 1];
   const xDiagramm = z => GX0 + (z - t0) / (t1 - t0) * (GX1 - GX0);
   const KX = 110;                          // x-Position des Koerpers
-
-  function zahl(v) { return (Math.round(v * 1000) / 1000).toString().replace(".", ","); }
 
   function zeichne(n) {
     c.clearRect(0, 0, cv.width, cv.height);
@@ -163,34 +251,87 @@ _VORLAGE = r"""
     c.fillText(anzeige, GX1 - c.measureText(anzeige).width, 18);
     regler.value = n;
   }
+""" + _ABSPIELEN
 
-  function schoeneSchrittweite(bereich) {
-    const roh = bereich / 5, p = Math.pow(10, Math.floor(Math.log10(roh)));
-    for (const f of [1, 2, 5, 10]) if (f * p >= roh) return f * p;
-  }
+# ----------------------------------------------------------------------
+# In der Ebene: Bahn mit gleichem Massstab auf beiden Achsen
+# ----------------------------------------------------------------------
+_VORLAGE_2D = _RAHMEN + r"""
+  const X = D.x, Y = D.y;
 
-  // Abspielen in echter Zeit: gezeigt wird immer der letzte Zeitschritt,
-  // der schon erreicht ist (kein Glaetten, wie ein Daumenkino).
-  let n = 0, laeuft = false, startUhr = 0, startT = 0;
-  function bild(jetzt) {
-    if (!laeuft) return;
-    const tz = startT + (jetzt - startUhr) / 1000 / (+lupe.value);
-    while (n < N - 1 && t[n + 1] <= tz) n++;
-    zeichne(n);
-    if (n >= N - 1) { stopp(); return; }
-    requestAnimationFrame(bild);
+  // Wertebereich (mit Ziel), etwas Rand
+  const xs = X.slice(), ys = Y.slice();
+  if (D.ziel) { xs.push(D.ziel[0]); ys.push(D.ziel[1]); }
+  let xmin = Math.min(...xs), xmax = Math.max(...xs);
+  let ymin = Math.min(...ys), ymax = Math.max(...ys);
+  const boden = ymin >= -1e-9;             // alles oberhalb von y = 0: Boden zeichnen
+  if (boden) ymin = 0;
+  if (xmax - xmin < 1e-9) { xmin -= 1; xmax += 1; }
+  if (ymax - ymin < 1e-9) { if (!boden) ymin -= 1; ymax += 1; }
+  const rx = 0.06 * (xmax - xmin), ry = 0.08 * (ymax - ymin);
+  xmin -= rx; xmax += rx; ymax += ry; if (!boden) ymin -= ry;
+
+  // Gleicher Massstab auf beiden Achsen; die Hoehe des Bildes passt sich an
+  const LI = 55, RE = 15, OB = 32, UN = 42, BREITE = cv.width - LI - RE;
+  let k = BREITE / (xmax - xmin);
+  let hoehe = k * (ymax - ymin);
+  if (hoehe > 420) { k = 420 / (ymax - ymin); hoehe = 420; }
+  if (hoehe < 160) { ymax = ymin + 160 / k; hoehe = 160; }   // sehr flache Bahn: oben Platz lassen
+  cv.height = Math.round(hoehe + OB + UN);
+  const x0 = LI + (BREITE - k * (xmax - xmin)) / 2;
+  const px = v => x0 + (v - xmin) * k;
+  const py = v => OB + (ymax - v) * k;
+
+  function zeichne(n) {
+    c.clearRect(0, 0, cv.width, cv.height);
+    c.font = "14px sans-serif"; c.lineWidth = 1;
+
+    // Gitter und Beschriftung (gleiche Schrittweite auf beiden Achsen)
+    const schritt = schoeneSchrittweite(0.6 * Math.max(xmax - xmin, ymax - ymin));
+    c.strokeStyle = "#eee"; c.fillStyle = "#666";
+    for (let w = Math.ceil(xmin / schritt) * schritt; w <= xmax; w += schritt) {
+      c.beginPath(); c.moveTo(px(w), py(ymin)); c.lineTo(px(w), py(ymax)); c.stroke();
+      const txt = zahl(w); c.fillText(txt, px(w) - c.measureText(txt).width / 2, py(ymin) + 18);
+    }
+    for (let w = Math.ceil(ymin / schritt) * schritt; w <= ymax; w += schritt) {
+      c.beginPath(); c.moveTo(px(xmin), py(w)); c.lineTo(px(xmax), py(w)); c.stroke();
+      const txt = zahl(w); c.fillText(txt, px(xmin) - 8 - c.measureText(txt).width, py(w) + 5);
+    }
+    c.fillText("y in m", 4, OB - 12);
+    c.fillText("x in m", px(xmax) - c.measureText("x in m").width, py(ymin) + 36);
+
+    // Boden bzw. Achsen durch 0
+    if (boden) {
+      c.strokeStyle = "#795548"; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(px(xmin), py(0)); c.lineTo(px(xmax), py(0)); c.stroke();
+    } else {
+      c.strokeStyle = "#bbb"; c.lineWidth = 1;
+      if (ymin < 0 && ymax > 0) { c.beginPath(); c.moveTo(px(xmin), py(0)); c.lineTo(px(xmax), py(0)); c.stroke(); }
+      if (xmin < 0 && xmax > 0) { c.beginPath(); c.moveTo(px(0), py(ymin)); c.lineTo(px(0), py(ymax)); c.stroke(); }
+    }
+
+    // Ziel
+    if (D.ziel) {
+      const zx = px(D.ziel[0]), zy = py(D.ziel[1]);
+      c.strokeStyle = "#ef6c00"; c.lineWidth = 3;
+      c.beginPath(); c.arc(zx, zy, 9, 0, 2 * Math.PI); c.stroke();
+      c.lineWidth = 1;
+      c.beginPath(); c.moveTo(zx - 14, zy); c.lineTo(zx + 14, zy); c.moveTo(zx, zy - 14); c.lineTo(zx, zy + 14); c.stroke();
+    }
+
+    // Bahn bis jetzt
+    c.strokeStyle = "#1565c0"; c.lineWidth = 2; c.beginPath();
+    for (let i = 0; i <= n; i++) {
+      i ? c.lineTo(px(X[i]), py(Y[i])) : c.moveTo(px(X[i]), py(Y[i]));
+    }
+    c.stroke();
+
+    // Koerper
+    c.fillStyle = "#c62828"; c.beginPath(); c.arc(px(X[n]), py(Y[n]), 8, 0, 2 * Math.PI); c.fill();
+
+    c.fillStyle = "#000"; c.font = "15px sans-serif";
+    const anzeige = "t = " + zahl(t[n]) + " s     x = " + zahl(X[n]) + " m     y = " + zahl(Y[n]) + " m";
+    c.fillText(anzeige, cv.width - RE - c.measureText(anzeige).width, 18);
+    regler.value = n;
   }
-  function los() {
-    if (n >= N - 1) n = 0;
-    laeuft = true; startUhr = performance.now(); startT = t[n];
-    knopf.innerHTML = "&#10074;&#10074; Pause"; requestAnimationFrame(bild);
-  }
-  function stopp() { laeuft = false; knopf.innerHTML = "&#9654; Start"; }
-  knopf.onclick = () => laeuft ? stopp() : los();
-  neu.onclick = () => { n = 0; zeichne(0); if (laeuft) { startUhr = performance.now(); startT = t[0]; } };
-  lupe.onchange = () => { if (laeuft) { startUhr = performance.now(); startT = t[n]; } };
-  regler.oninput = () => { stopp(); n = +regler.value; zeichne(n); };
-  zeichne(0);
-})();
-</script>
-"""
+""" + _ABSPIELEN
