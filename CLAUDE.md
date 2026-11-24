@@ -28,6 +28,7 @@
       from pyodide.http import open_url
       t, s = np.loadtxt(open_url("https://elmar-siepmann.github.io/bewegungen/files/data/" + datei), delimiter=",", skiprows=1, unpack=True)
   ```
+- **Animation** (seit 24.11.2026): `content/animation.py` mit `animiere(t, s, art="feder"|"fall"|"wurf", zeitlupe=1)`. Nimmt Listen oder Arrays. Ein HTML-Canvas mit JavaScript (kein matplotlib, weil Pyodide sonst jedes Bild einzeln rendert): links der Körper, rechts das mitwachsende s-t-Diagramm auf gleicher Höhe, Abspielen in echter Zeit ohne Glätten (jedes Bild = ein Zeitschritt, grobes dt ruckelt sichtbar). Bei „fall“ zeigt s nach unten. Zunächst tippen die Schüler die zwei Zeilen `from animation import animiere` und `animiere(t_folge, s_folge)` selbst in `06_simulieren` ein.
 - Format der CSV-Dateien: Komma als Trenner, eine Kopfzeile. Achtung: deutsche CSV-Dateien nutzen oft Semikolon und Dezimalkomma; Export mit Dezimalpunkt verwenden (z. B. in phyphox wählbar).
 
 ## Konventionen für Notebooks
